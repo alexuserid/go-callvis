@@ -142,6 +142,20 @@ func printOutput(
 		return false
 	}
 
+	var inIgnoreTypes = func(node *callgraph.Node) bool {
+		params := node.Func.Params
+		if len(params) == 0 || params[0] == nil {
+			return false
+		}
+
+		for _, ignored := range ignorePaths {
+			if params[0].Type().String() == ignored {
+				return true
+			}
+		}
+		return false
+	}
+
 	var isInter = func(edge *callgraph.Edge) bool {
 		//caller := edge.Caller
 		callee := edge.Callee
@@ -208,7 +222,8 @@ func printOutput(
 
 			// ignore path prefixes
 			if len(ignorePaths) > 0 &&
-				(inIgnores(caller) || inIgnores(callee)) {
+				(inIgnores(caller) || inIgnores(callee)) ||
+				inIgnoreTypes(caller) || inIgnoreTypes(callee) {
 				logf("IS ignored: %s -> %s", caller, callee)
 				return nil
 			}
