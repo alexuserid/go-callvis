@@ -1,6 +1,6 @@
 package main
 
-import "github.com/ofabry/go-callvis/origin"
+import "github.com/alexuserid/go-callvis/origin"
 
 // Use go-callvis as a package instead of binary on user machine.
 // It simplifies go-codevis usage start and allows to manage dependencies by developer,

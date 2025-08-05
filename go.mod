@@ -1,4 +1,4 @@
-module github.com/ofabry/go-callvis
+module github.com/alexuserid/go-callvis
 
 go 1.22.0
 
