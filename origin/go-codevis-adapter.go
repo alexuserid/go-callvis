@@ -45,6 +45,9 @@ func (a *GoCodevisAdapter) Handler() http.Handler {
 }
 
 func setInitOpts(a *analysis, config Config) {
+	if a.opts == nil {
+		a.OptsSetup()
+	}
 	Analysis.opts = &renderOpts{
 		cacheDir: a.opts.cacheDir,
 		focus:    a.opts.focus,
