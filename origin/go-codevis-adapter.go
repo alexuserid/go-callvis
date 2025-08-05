@@ -6,7 +6,9 @@ import (
 	"net/http"
 )
 
-type GoCodevisAdapter struct{}
+type GoCodevisAdapter struct {
+	cfg Config
+}
 
 type Config struct {
 	MainPkgPath   string
@@ -21,7 +23,7 @@ func DefaultConfig() Config {
 		MainPkgPath:   "./",
 		CallgraphAlgo: CallGraphTypeStatic,
 		NoStd:         true,
-		NoInter:       true,
+		NoInter:       false,
 		Group:         []string{"pkg,type"},
 	}
 }
@@ -31,39 +33,37 @@ func NewGoCodevisAdapter(cfg Config) *GoCodevisAdapter {
 	args := []string{cfg.MainPkgPath}
 
 	Analysis = new(analysis)
-	setInitOpts(Analysis, cfg)
+	setInitOpts(cfg)
 
 	if err := Analysis.DoAnalysis(CallGraphType(*callgraphAlgo), "", tests, args); err != nil {
 		log.Fatal(err)
 	}
 
-	return &GoCodevisAdapter{}
+	return &GoCodevisAdapter{
+		cfg: cfg,
+	}
 }
 
 func (a *GoCodevisAdapter) Handler() http.Handler {
-	return http.HandlerFunc(goCodevisHandler)
+	return http.HandlerFunc(a.goCodevisHandler)
 }
 
-func setInitOpts(a *analysis, config Config) {
-	if a.opts == nil {
-		a.OptsSetup()
-	}
-	Analysis.opts = &renderOpts{
-		cacheDir: a.opts.cacheDir,
-		focus:    a.opts.focus,
-		group:    config.Group,
-		ignore:   a.opts.ignore,
-		include:  a.opts.include,
-		limit:    a.opts.limit,
-		nointer:  config.NoInter,
-		nostd:    config.NoStd,
-	}
+func setInitOpts(config Config) {
+	Analysis.OptsSetup()
+	Analysis.opts.group = config.Group
+	Analysis.opts.nointer = config.NoInter
+	Analysis.opts.nostd = config.NoStd
 }
 
-func goCodevisHandler(w http.ResponseWriter, r *http.Request) {
+func (a *GoCodevisAdapter) goCodevisHandler(w http.ResponseWriter, r *http.Request) {
 	logf("----------------------")
 	logf(" => handling request:  %v", r.URL)
 	logf("----------------------")
+
+	defer func() {
+		// Reset to default
+		setInitOpts(a.cfg)
+	}()
 
 	// Allow overriding by HTTP params
 	Analysis.OverrideByHTTP(r)
