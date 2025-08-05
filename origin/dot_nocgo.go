@@ -1,8 +1,8 @@
 //go:build !cgo
 // +build !cgo
 
-package main
+package origin
 
 func runDotToImage(outfname string, format string, dot []byte) (string, error) {
-    return runDotToImageCallSystemGraphviz(outfname, format, dot)
+	return runDotToImageCallSystemGraphviz(outfname, format, dot)
 }
