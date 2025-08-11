@@ -28,7 +28,7 @@ func DefaultConfig() Config {
 	}
 }
 
-func NewGoCodevisAdapter(cfg Config) *GoCodevisAdapter {
+func NewGoCodevisAdapter(cfg Config) (*GoCodevisAdapter, error) {
 	tests := false
 	args := []string{cfg.MainPkgPath}
 
@@ -36,12 +36,12 @@ func NewGoCodevisAdapter(cfg Config) *GoCodevisAdapter {
 	setInitOpts(cfg)
 
 	if err := Analysis.DoAnalysis(CallGraphType(*callgraphAlgo), "", tests, args); err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("do analysys: %w", err)
 	}
 
 	return &GoCodevisAdapter{
 		cfg: cfg,
-	}
+	}, nil
 }
 
 func (a *GoCodevisAdapter) Handler() http.Handler {
